@@ -8,18 +8,6 @@ class TypeFn {
         return Object.prototype.toString.call(o).slice(8, -1) === 'Number'
     }
 
-    isObj (o) { //是否对象
-        return Object.prototype.toString.call(o).slice(8, -1) === 'Object'
-    }
-
-    isArray (o) { //是否数组
-        return Object.prototype.toString.call(o).slice(8, -1) === 'Array'
-    }
-
-    isDate (o) { //是否时间
-        return Object.prototype.toString.call(o).slice(8, -1) === 'Date'
-    }
-
     isBoolean (o) { //是否boolean
         return Object.prototype.toString.call(o).slice(8, -1) === 'Boolean'
     }
@@ -35,6 +23,39 @@ class TypeFn {
     isUndefined (o) { //是否undefined
         return Object.prototype.toString.call(o).slice(8, -1) === 'Undefined'
     }
+
+    isObj (o) { //是否对象
+        return Object.prototype.toString.call(o).slice(8, -1) === 'Object'
+    }
+
+    isArray (o) { //是否数组
+        return Object.prototype.toString.call(o).slice(8, -1) === 'Array'
+    }
+
+    isDate (o) { //是否时间
+        return Object.prototype.toString.call(o).slice(8, -1) === 'Date'
+    }
+
+    isRegExp (o) { //是否正则
+        return Object.prototype.toString.call(o).slice(8, -1) === 'RegExp'
+    }
+
+    isError (o) { //是否错误对象
+        return Object.prototype.toString.call(o).slice(8, -1) === 'Error'
+    }
+
+    isSymbol (o) { //是否Symbol函数
+        return Object.prototype.toString.call(o).slice(8, -1) === 'Symbol'
+    }
+
+    isPromise (o) { //是否Promise对象
+        return Object.prototype.toString.call(o).slice(8, -1) === 'Promise'
+    }
+
+    isSet (o) { //是否Set对象
+        return Object.prototype.toString.call(o).slice(8, -1) === 'Set'
+    }
+
 
     isFalse (o) {
         if (o == '' || o == undefined || o == null || o == 'null' || o == 'undefined' || o == 0 || o == false || o == NaN) return true
@@ -83,10 +104,12 @@ class TypeFn {
         var userAgent = navigator.userAgent; //取得浏览器的userAgent字符串
         var isOpera = userAgent.indexOf("Opera") > -1; //判断是否Opera浏览器
         var isIE = userAgent.indexOf("compatible") > -1 && userAgent.indexOf("MSIE") > -1 && !isOpera; //判断是否IE浏览器
-        var isEdge = userAgent.indexOf("Edge") > -1; //判断是否IE的Edge浏览器
+        var isIE11 = userAgent.indexOf('Trident') > -1 && userAgent.indexOf("rv:11.0") > -1;
+        var isEdge = userAgent.indexOf("Edge") > -1 && !isIE; //判断是否IE的Edge浏览器  
         var isFF = userAgent.indexOf("Firefox") > -1; //判断是否Firefox浏览器
         var isSafari = userAgent.indexOf("Safari") > -1 && userAgent.indexOf("Chrome") == -1; //判断是否Safari浏览器
         var isChrome = userAgent.indexOf("Chrome") > -1 && userAgent.indexOf("Safari") > -1; //判断Chrome浏览器
+
         if (isIE) {
             var reIE = new RegExp("MSIE (\\d+\\.\\d+);");
             reIE.test(userAgent);
@@ -95,25 +118,24 @@ class TypeFn {
             else if(fIEVersion == 8) return "IE8";
             else if(fIEVersion == 9) return "IE9";
             else if(fIEVersion == 10) return "IE10";
-            else if(fIEVersion == 11) return "IE11";
             else return "IE7以下"//IE版本过低
         }
-
+        if (isIE11) return 'IE11';
+        if (isEdge) return "Edge";
         if (isFF) return "FF";
         if (isOpera) return "Opera";
-        if (isEdge) return "Edge";
-        if (isSafari) return "Safari";
+       if (isSafari) return "Safari";
         if (isChrome) return "Chrome";
     }
 
     checkStr (str, type) {
         switch (type) {
             case 'phone':   //手机号码
-                return /^1[3|4|5|7|8][0-9]{9}$/.test(str);
+                return /^1[3|4|5|6|7|8][0-9]{9}$/.test(str);
             case 'tel':     //座机
                 return /^(0\d{2,3}-\d{7,8})(-\d{1,4})?$/.test(str);
             case 'card':    //身份证
-                return /^\d{15}|\d{18}$/.test(str);
+                return /(^\d{15}$)|(^\d{18}$)|(^\d{17}(\d|X|x)$)/.test(str);
             case 'pwd':     //密码以字母开头，长度在6~18之间，只能包含字母、数字和下划线
                 return /^[a-zA-Z]\w{5,17}$/.test(str)
             case 'postal':  //邮政编码
@@ -145,6 +167,43 @@ class TypeFn {
             default:
                 return true;
         }
+    }
+
+    // 严格的身份证校验
+    isCardID(sId) {
+        if (!/(^\d{15}$)|(^\d{17}(\d|X|x)$)/.test(sId)) {
+            alert('你输入的身份证长度或格式错误')
+            return false
+        }
+        //身份证城市
+        var aCity={11:"北京",12:"天津",13:"河北",14:"山西",15:"内蒙古",21:"辽宁",22:"吉林",23:"黑龙江",31:"上海",32:"江苏",33:"浙江",34:"安徽",35:"福建",36:"江西",37:"山东",41:"河南",42:"湖北",43:"湖南",44:"广东",45:"广西",46:"海南",50:"重庆",51:"四川",52:"贵州",53:"云南",54:"西藏",61:"陕西",62:"甘肃",63:"青海",64:"宁夏",65:"新疆",71:"台湾",81:"香港",82:"澳门",91:"国外"};
+        if(!aCity[parseInt(sId.substr(0,2))]) { 
+            alert('你的身份证地区非法')
+            return false
+        }
+
+        // 出生日期验证
+        var sBirthday=(sId.substr(6,4)+"-"+Number(sId.substr(10,2))+"-"+Number(sId.substr(12,2))).replace(/-/g,"/"),
+            d = new Date(sBirthday)
+        if(sBirthday != (d.getFullYear()+"/"+ (d.getMonth()+1) + "/" + d.getDate())) {
+            alert('身份证上的出生日期非法')
+            return false
+        }
+
+        // 身份证号码校验
+        var sum = 0,
+            weights =  [7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2],
+            codes = "10X98765432"
+        for (var i = 0; i < sId.length - 1; i++) {
+            sum += sId[i] * weights[i];
+        }
+        var last = codes[sum % 11]; //计算出来的最后一位身份证号码
+        if (sId[sId.length-1] != last) { 
+            alert('你输入的身份证号非法')
+            return false
+        }
+        
+        return true
     }
 }
 
@@ -205,53 +264,59 @@ class DateFn {
      * @example   getMonths('2018-1-29', 6, 1)  // ->  ["2018-1", "2017-12", "2017-11", "2017-10", "2017-9", "2017-8", "2017-7"]
      */
     getMonths(time, len, direction) {
-        var mm = new Date(time).getMonth(),
+        var mm = new Date(time).getMonth()+1,
             yy = new Date(time).getFullYear(),
             direction = isNaN(direction) ? 3 : direction,
             index = mm;
+
         var cutMonth = function(index) {
-            if ( index <= len && index >= -len) {
-                return direction === 1 ? formatPre(index).concat(cutMonth(++index)):
-                    direction === 2 ? formatNext(index).concat(cutMonth(++index)):formatCurr(index).concat(cutMonth(++index))
-            }
-            return []
-        }
-        var formatNext = function(i) {
-            var y = Math.floor(i/12),
-                m = i%12
-            return [yy+y + '-' + (m+1)]
-        }
-        var formatPre = function(i) {
-            var y = Math.ceil(i/12),
-                m = i%12
-            m = m===0 ? 12 : m
-            return [yy-y + '-' + (13 - m)]
-        }
-        var formatCurr = function(i) {
-            var y = Math.floor(i/12),
-                yNext = Math.ceil(i/12),
-                m = i%12,
-                mNext = m===0 ? 12 : m
-            return [yy-yNext + '-' + (13 - mNext),yy+y + '-' + (m+1)]
-        }
-        // 数组去重
-        var unique = function(arr) {
-            if ( Array.hasOwnProperty('from') ) {
-                return Array.from(new Set(arr));
+            var arr 
+            if (direction === 1) {
+                arr = formatPre(index).reverse()
+            }else if(direction === 2) {
+                arr = formatNext(index)
             }else{
-                var n = {},r=[]; 
-                for(var i = 0; i < arr.length; i++){
-                    if (!n[arr[i]]){
-                        n[arr[i]] = true; 
-                        r.push(arr[i]);
-                    }
-                }
-                return r;
+                arr = formatPre(index).reverse().slice(len/2).concat(formatNext(index).slice(1, len/2+1))
             }
+            return arr.sort(function(t1, t2){
+                return new Date(t1).getTime() - new Date(t2).getTime()
+            })
         }
-        return direction !== 3 ? cutMonth(index) : unique(cutMonth(index).sort(function(t1, t2){
-            return new Date(t1).getTime() - new Date(t2).getTime()
-        }))
+
+        var formatPre = function(index) {
+            var currNum = index,
+                preNum = 0,
+                currArr = [],
+                preArr = []
+            if (index-len < 0) {
+                preNum = len-currNum   
+            }
+            for (var i = 0; i < currNum; i++) {
+                currArr.push([yy+'-'+(currNum-i)])
+            }
+            for (var i = 1; i <= preNum; i++) {
+                preArr.push([(yy-Math.ceil(i/12))+'-'+(12-(i-1)%12)])
+            }
+            return currArr.concat(preArr)
+        }
+
+        var formatNext = function(index) {
+            var currNum = 12-index,
+                nextNum = 0,
+                currArr = [],
+                nextArr = []
+            if (len-currNum > 0) {
+                nextNum = len-currNum   
+            }
+            for (var i = 0; i <= currNum; i++) {
+                currArr.push([yy+'-'+(index+i)])
+            }
+            for (var i = 1; i < nextNum; i++) {
+                nextArr.push([(yy+Math.ceil(i/12))+'-'+(i%13 === 0 ? 1:i%13)])
+            }
+            return currArr.concat(nextArr)
+        }
+        return cutMonth(index)
     }
 
 
@@ -993,7 +1058,6 @@ class DomFn {
 
     /*获取兄弟节点*/
     siblings (ele) {
-        console.log(ele.parentNode)
         var chid = ele.parentNode.children,eleMatch = []; 
         for(var i = 0, len = chid.length; i < len; i ++){ 
             if(chid[i] != ele){ 
@@ -1125,6 +1189,188 @@ class StorageFn {
 
 /* //////////////////////////////其它操作///////////////////////////////////*/
 class OtherFn {
+    /**
+     * [deepClone 深度克隆]
+     * @param  {[type]} obj [克隆对象]
+     * @return {[type]}     [返回深度克隆后的对象]
+     */
+    deepClone (obj) {
+        if (obj === null || typeof obj !== 'object') return obj
+        var isType = function(obj, type) {
+            var flag,
+                typeString = Object.prototype.toString.call(obj)
+            switch(type) {
+                case 'Array':
+                    flag = typeString === '[object Array]'
+                    break
+                case 'Date':
+                    flag = typeString === '[object Date]'
+                    break
+                case 'RegExp':
+                    flag = typeString === '[object RegExp]'
+                    break
+                default:
+                    flag = false
+            }
+            return flag
+        }
+        var getRegExp = function(re) {
+            var flags = ''
+            if (re.global) flags += 'g'
+            if (re.ignoreCase) flags += 'i'
+            if (re.multiline) flags += 'm'
+            return flags
+        }
+
+        var _clone = function(parent) {
+            var child, proto, parents = [], children = []
+            if (isType(parent, 'Array')) {// 对数组做特殊处理
+                child = [];
+            } else if (isType(parent, 'RegExp')) {// 对正则做特殊处理
+                child = new RegExp(parent.source, getRegExp(parent));
+                if (parent.lastIndex) child.lastIndex = parent.lastIndex;
+            } else if (isType(parent, 'Date')) {// 对Date做特殊处理
+                child = new Date(parent.getTime());
+            } else {
+                // 处理对象原型
+                proto = Object.getPrototypeOf(parent);
+                // 利用Object.create切断原型链
+                child = Object.create(proto);
+            }
+            // 处理循环引用
+            var index = parents.indexOf(parent);
+
+            if (index != -1) {
+                // 如果父数组存在本对象,说明之前已经被引用过,直接返回此对象
+                return children[index];
+            }
+            parents.push(parent);
+            children.push(child);
+
+            for (var i in parent) {
+                child[i] = _clone(parent[i]);
+            }
+
+            return child;
+        }
+        return _clone(obj)
+    }
+
+    /**
+     * 防抖动
+     * @param  {Function} fn        [执行的函数]
+     * @param  {[type]}   delay     [多少秒之后执行]
+     * @param  {[type]}   immediate [是否立即执行]
+     * @return {[type]}             []
+     */
+    debounce(fn, delay, immediate) {
+        var timeout;
+        return function() {
+            var context = this, args = arguments;
+            var later = function() {
+                timeout = null;
+                if (!immediate) fn.apply(context, args);
+            };
+            var callNow = immediate && !timeout;
+            clearTimeout(timeout);
+            timeout = setTimeout(later, delay);
+            if (callNow) fn.apply(context, args);
+        };
+    }
+
+    /**
+     * 节流
+     * @param  {[type]} func  [执行的函数]
+     * @param  {[type]} delay [多少秒之内执行一次]
+     * @return {[type]}       [description]
+     */
+    throttle (func,delay){
+        var prev = Date.now();
+        return function(){
+            var context = this;
+            var args = arguments;
+            var now = Date.now();
+            if(now-prev>=delay){
+                func.apply(context,args);
+                prev = Date.now();
+            }
+        }
+    }
+
+    /**
+     * 图片压缩
+     * @param  {[type]}   file [压缩文件]
+     * @param  {[type]}   obj  [压缩参数]
+     * @param  {Function} cb   [回调函数]
+     * @return {[type]}        [返回压缩前和压缩后的格式]
+     */
+    photoCompress(file, obj, cb) {
+        /*
+            obj = {
+                width: 图片宽,
+                height: 图片高,
+                quality: 图像质量，
+                blob: 是否转换成Blob
+            }
+         */
+        //将以base64的图片url数据转换为Blob
+        function convertBase64UrlToBlob(urlData){
+            var arr = urlData.split(','), mime = arr[0].match(/:(.*?);/)[1],
+                bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
+            while(n--){
+                u8arr[n] = bstr.charCodeAt(n);
+            }
+            return new Blob([u8arr], {type:mime});
+        }
+
+        // canvas 绘制图片
+        function canvasDataURL(oldBase64){
+            var img = new Image();
+            img.src = oldBase64;
+            img.onload = function(){
+                var that = this;
+                // 默认按比例压缩
+                var w = that.width,
+                    h = that.height,
+                    scale = w / h;
+                w = obj.width || w;
+                h = obj.height || (w / scale);
+                var quality = 0.7;  // 默认图片质量为0.7
+                //生成canvas
+                var canvas = document.createElement('canvas');
+                var ctx = canvas.getContext('2d');
+                // 创建属性节点
+                var anw = document.createAttribute("width");
+                anw.nodeValue = w;
+                var anh = document.createAttribute("height");
+                anh.nodeValue = h;
+                canvas.setAttributeNode(anw);
+                canvas.setAttributeNode(anh);
+                ctx.drawImage(that, 0, 0, w, h);
+                // 图像质量
+                if(obj.quality && obj.quality <= 1 && obj.quality > 0){
+                    quality = obj.quality;
+                }
+                // quality值越小，所绘制出的图像越模糊
+                var base64 = canvas.toDataURL('image/jpeg', quality);
+                // 回调函数返回base64的值
+                if (obj.blob) {
+                    cb && cb(convertBase64UrlToBlob(base64), convertBase64UrlToBlob(oldBase64))
+                }else{
+                    cb && cb(base64, oldBase64);
+                }
+            }
+        }
+
+        // 读取图片的base64格式
+        var ready=new FileReader();
+        ready.readAsDataURL(file);
+        ready.onload=function(){
+            var re=this.result;
+            canvasDataURL(re)
+        }
+    }
+    
     /*获取网址参数*/
     getURL(name){
         var reg = new RegExp("(^|&)"+ name +"=([^&]*)(&|$)");
